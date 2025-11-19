@@ -1,0 +1,92 @@
+// ShipsSim.compute
+#pragma kernel InitShips
+#pragma kernel UpdateShips
+
+struct Planet {
+    float4 posRad;
+    float2 mass_pad; // x = mass
+};
+struct Ship {
+    float4 pos; // xyz = position
+    float4 vel; // xyz = velocity
+};
+
+StructuredBuffer<Planet> _Planets; // lectura
+RWStructuredBuffer<Ship> _Ships;   // escritura
+
+cbuffer Params {
+    uint  _PlanetCount;
+    uint  _ShipCount;
+    float3 _AreaMin;
+    float  _G;
+    float3 _AreaMax;
+    float  _DeltaTime;
+    float2 _RadiusRange_unused; // relleno para compatibilidad
+    float2 _ShipSpeedRange;
+    float  _MassPerRadius_unused;
+    uint   _Seed;
+    float  _Bounce;
+    float  _Damping;
+    float  _MinDist;
+};
+
+uint Hash(uint x) {
+    x ^= 2747636419u; x *= 2654435769u;
+    x ^= x >> 16;     x *= 2654435769u;
+    x ^= x >> 16;     x *= 2654435769u;
+    return x;
+}
+float Rand01(inout uint s) { s = Hash(s); return (s & 0x00FFFFFFu) / 16777216.0; }
+float3 RandInBox(inout uint s, float3 mn, float3 mx) {
+    return float3(lerp(mn.x, mx.x, Rand01(s)),
+                  lerp(mn.y, mx.y, Rand01(s)),
+                  lerp(mn.z, mx.z, Rand01(s)));
+}
+float3 RandDir(inout uint s) {
+    float u = Rand01(s) * 2.0 - 1.0;
+    float a = Rand01(s) * 6.2831853;
+    float r = sqrt(max(0.0, 1.0 - u*u));
+    return float3(r*cos(a), u, r*sin(a));
+}
+
+[numthreads(64,1,1)]
+void InitShips(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= _ShipCount) return;
+    uint state = _Seed + 74831u * (id.x + 1u);
+
+    Ship s;
+    s.pos = float4(RandInBox(state, _AreaMin, _AreaMax), 0.0);
+    float3 dir = RandDir(state);
+    float  spd = lerp(_ShipSpeedRange.x, _ShipSpeedRange.y, Rand01(state));
+    s.vel = float4(dir * spd, 0.0);
+    _Ships[id.x] = s;
+}
+
+[numthreads(64,1,1)]
+void UpdateShips(uint3 id : SV_DispatchThreadID) {
+    if (id.x >= _ShipCount) return;
+
+    Ship s = _Ships[id.x];
+    float3 acc = 0.0;
+
+    [loop] for (uint j = 0; j < _PlanetCount; j++) {
+        Planet p = _Planets[j];
+        float3 d = p.posRad.xyz - s.pos.xyz;
+        float distSq = max(dot(d,d), _MinDist*_MinDist);
+        float invDist = rsqrt(distSq);
+        float3 dir = d * invDist;
+        acc += dir * (_G * p.mass_pad.x / distSq);
+    }
+
+    s.vel.xyz += acc * _DeltaTime;
+    s.pos.xyz += s.vel.xyz * _DeltaTime;
+
+    if (_Bounce > 0.5) {
+        [unroll] for (int ax=0; ax<3; ax++) {
+            if (s.pos[ax] < _AreaMin[ax]) { s.pos[ax] = _AreaMin[ax]; s.vel[ax] = -s.vel[ax] * _Damping; }
+            else if (s.pos[ax] > _AreaMax[ax]) { s.pos[ax] = _AreaMax[ax]; s.vel[ax] = -s.vel[ax] * _Damping; }
+        }
+    }
+    _Ships[id.x] = s;
+}
+
