@@ -1,14 +1,13 @@
-// ShipsSim.compute
 #pragma kernel InitShips
 #pragma kernel UpdateShips
 
 struct Planet {
     float4 posRad;
-    float2 mass_pad; // x = mass
+    float2 mass_pad; 
 };
 struct Ship {
-    float4 pos; // xyz = position
-    float4 vel; // xyz = velocity
+    float4 pos;
+    float4 vel; 
 };
 
 StructuredBuffer<Planet> _Planets; // lectura

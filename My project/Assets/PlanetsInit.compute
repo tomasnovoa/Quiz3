@@ -1,9 +1,8 @@
-// PlanetsInit.compute
 #pragma kernel InitPlanets
 
 struct Planet {
-    float4 posRad;   // xyz = position, w = radius
-    float2 mass_pad; // x = mass, y = pad
+    float4 posRad;   
+    float2 mass_pad; 
 };
 
 RWStructuredBuffer<Planet> _Planets;
@@ -11,11 +10,11 @@ RWStructuredBuffer<Planet> _Planets;
 cbuffer Params {
     uint  _PlanetCount;
     float3 _AreaMin;
-    float  _G_dummy;          // relleno para alineación
+    float  _G_dummy;         
     float3 _AreaMax;
-    float  _DeltaTime_dummy;  // relleno
+    float  _DeltaTime_dummy; 
     float2 _RadiusRange;
-    float2 _ShipSpeedRange_dummy; // relleno
+    float2 _ShipSpeedRange_dummy; 
     float  _MassPerRadius;
     uint   _Seed;
     float  _Bounce_dummy;
