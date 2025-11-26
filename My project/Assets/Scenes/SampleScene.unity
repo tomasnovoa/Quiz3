@@ -373,10 +373,10 @@ MonoBehaviour:
   shipsCS: {fileID: 7200000, guid: 871f6b64ba4fd9945bbfaa23c135ccfa, type: 3}
   planetPrefab: {fileID: 6027904485939269542, guid: 15627c7cd6f65fd4399675786b193e7e, type: 3}
   shipPrefab: {fileID: 5273762765838105483, guid: 9fa6710118b77ef42936fe14503a4270, type: 3}
-  planetCount: 10
-  shipCount: 50
-  areaMin: {x: -15, y: -15, z: 0}
-  areaMax: {x: 10, y: 10, z: 0}
+  planetCount: 100
+  shipCount: 100
+  areaMin: {x: -8, y: -4.5, z: 0}
+  areaMax: {x: 8, y: 4.5, z: 0}
   radiusRange: {x: 1, y: 1}
   massPerRadius: 2
   speedRange: {x: 3, y: 12}
@@ -385,6 +385,10 @@ MonoBehaviour:
   bounceDamping: 0.9
   minDistance: 0.25
   seed: 12345
+  gridWidthWorld: 16
+  gridHeightWorld: 9
+  borderPadding: 0.5
+  uniformRadius: 0.2
 --- !u!4 &1267540286
 Transform:
   m_ObjectHideFlags: 0
